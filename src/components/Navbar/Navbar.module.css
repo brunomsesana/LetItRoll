@@ -1,0 +1,36 @@
+.navbar{
+    width: 100%;
+    background-color: var(--Primaria);
+    height: 15vh;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+}
+.navbar img {
+    width: 13vw;
+}
+.menu{
+    height: 100%;
+}
+.menu button{
+    height: 100%;
+    width: 10vw;
+    min-width: 100px;
+    background-color: transparent;
+    color: var(--Branco);
+    border: 2px solid transparent;
+    font-size: medium;
+}
+.menu button:not(:first-child) {
+    border-left: 2px solid var(--Branco);
+}
+.menu button:hover{
+    text-shadow: 0 0 10px white;
+    border-bottom: 2px solid white;
+    cursor: pointer;
+}
+.menu .selected{
+    border-bottom: 5px solid var(--Branco) !important;
+    text-shadow: none !important;
+    cursor: default !important;
+}
