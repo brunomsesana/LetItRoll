@@ -12,12 +12,18 @@ export default function Navbar({selected} : {selected?: string}){
                         Campanhas
                     </button>
                 </Link>
-                <Link to="/fichas"><button className={selected === "/fichas" ? styles.selected : ""}>Fichas</button></Link>
+                <Link to="/fichas">
+                    <button className={selected === "/fichas" ? styles.selected : ""}>Fichas</button>
+                </Link>
                 <Link to="/comunidade"><button className={selected === "/comunidade" ? styles.selected : ""}>Comunidade</button></Link>
             </div>
             <div className={styles.menu}>
-                <button>Registrar</button>
-                <button>Login</button>
+                <Link to="/registro">
+                    <button>Registrar</button>
+                </Link>
+                <Link to="/login">
+                    <button>Login</button>
+                </Link>
             </div>
         </div>
     );

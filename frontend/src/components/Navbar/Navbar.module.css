@@ -21,7 +21,7 @@
     border: 2px solid transparent;
     font-size: medium;
 }
-.menu button:not(:first-child) {
+.menu a:not(:first-child) {
     border-left: 2px solid var(--Branco);
 }
 .menu button:hover{
