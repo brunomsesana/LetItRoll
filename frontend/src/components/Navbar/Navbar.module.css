@@ -5,12 +5,19 @@
     margin: 0;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
-.navbar img {
-    width: 13vw;
+.linkLogo img {
+    width: 9vw;
+    padding: 10px;
 }
 .menu{
     height: 100%;
+}
+.menuPerfil{
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 .menu button{
     height: 100%;

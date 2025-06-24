@@ -5,6 +5,8 @@ import Home from './pages/Home'
 import Campanhas from './pages/Campanhas'
 import Fichas from './pages/Fichas'
 import Comunidade from './pages/Comunidade'
+import Registro from "./pages/Registro"
+import Login from "./pages/Login"
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path='/campanhas' element={<Campanhas/>}/>
         <Route path='/fichas' element={<Fichas/>}/>
         <Route path='/comunidade' element={<Comunidade/>}/>
+        <Route path="/registro" element={<Registro/>}/>
+        <Route path="/login" element={<Login/>}/>
       </Routes>
     </Router>
   )

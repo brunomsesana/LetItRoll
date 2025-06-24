@@ -1,8 +1,10 @@
 :root{
     --Primaria: #590202;
-    --Secundaria: #A66B56;
-    --Complementar1: #F28A2E;
+    --Secundaria: #c97d7d;
+    --Complementar1: #d36c11;
     --Complementar2: #260101;
+    --Botoes: #0e0d0d;
+    --BotoesHover: #252525;
     --Branco: #F1E5D7;
     --Preto: #0e0d0c;
 }
