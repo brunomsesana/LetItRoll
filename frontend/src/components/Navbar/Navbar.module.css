@@ -1,11 +1,14 @@
 .navbar{
     width: 100%;
     background-color: var(--Primaria);
-    height: 15vh;
+    height: 100px;
     margin: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 .linkLogo img {
     width: 9vw;
@@ -27,6 +30,7 @@
     color: var(--Branco);
     border: 2px solid transparent;
     font-size: medium;
+    border-radius: 0;
 }
 .menu a:not(:first-child) {
     border-left: 2px solid var(--Branco);

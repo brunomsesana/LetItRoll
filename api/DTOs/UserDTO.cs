@@ -11,5 +11,12 @@ namespace api.DTOs
         public string Name { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
+        public UserDTO()
+        {
+            Id = 0;
+            Name = string.Empty;
+            LastName = string.Empty;
+            Email = string.Empty;
+        }
     }
 }

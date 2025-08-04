@@ -2,3 +2,16 @@ body{
   width: 100%;
   margin: 0;
 }
+button{
+  padding: 10px !important;
+  background-color: var(--Branco);
+  border-radius: 15px;
+  border: 2px solid transparent;
+  color: var(--Complementar2);
+}
+button:hover{
+  border: 2px solid var(--Branco);
+  background-color: var(--Primaria);
+  color: var(--Branco);
+  cursor: pointer;
+}

@@ -7,7 +7,7 @@ import { AppContext } from '../../contexts/AppContext';
 export default function Registro() {
   const [formData, setFormData] = useState({
     name: '',
-    lastname: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -69,7 +69,7 @@ export default function Registro() {
         </div>
         <div className={styles.formDiv}>
           <label htmlFor="lastName">Sobrenome:</label>
-          <input type="text" id='lastName' name='lastName' className={styles.input} value={formData.lastname} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} />
+          <input type="text" id='lastName' name='lastName' className={styles.input} value={formData.lastName} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} />
         </div>
         <div className={styles.formDiv}>
           <label htmlFor="email">Email:</label>
@@ -84,7 +84,7 @@ export default function Registro() {
           <input type="password" id='confirmPassword' name='confirmPassword' className={styles.input} value={formData.confirmPassword} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})} />
         </div>
         <div className={styles.formDiv}>
-                    <label style={{opacity: keepLoggedIn ? 1 : 0.5}}><input type="checkbox" name="keepLoggedIn" id="keepLoggedIn" checked={keepLoggedIn} onChange={(e) => setKeepLoggedIn(e.target.checked)} /> Manter conectado</label>
+                    <label><input type="checkbox" name="keepLoggedIn" id="keepLoggedIn" checked={keepLoggedIn} onChange={(e) => setKeepLoggedIn(e.target.checked)} /> Manter conectado</label>
                 </div>
         <div className={styles.formDiv} style={{ justifyContent: 'center', marginBottom: 0, marginTop: 20 }}>
           <input type="submit" className={styles.btn} value="Registrar" />

@@ -1,0 +1,18 @@
+.main{
+    color: var(--Branco);
+}
+.main h1{
+    font-size: 3rem;
+}
+.main section{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+    padding-top: 100px;
+    min-height: calc(100vh - 170px);
+}
+.imgDiv{
+    width: 40%;
+    margin-left: 100px;
+}

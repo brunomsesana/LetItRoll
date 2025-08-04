@@ -8,11 +8,11 @@ import avatar from '../../assets/avatar.svg'
 export default function Navbar({selected} : {selected?: string}){
     const {user} = useContext(AppContext);
     return (
-        <div className={styles.navbar}>
+        <header className={styles.navbar}>
             <Link to="/" className={styles.linkLogo}>
                 <img src={LogoBgEscuro} alt="" />
             </Link>
-            <div className={styles.menu}>
+            <nav className={styles.menu}>
                 <Link to="/campanhas">
                     <button className={selected === "/campanhas" ? styles.selected : ""}>
                         Campanhas
@@ -22,7 +22,7 @@ export default function Navbar({selected} : {selected?: string}){
                     <button className={selected === "/fichas" ? styles.selected : ""}>Fichas</button>
                 </Link>
                 <Link to="/comunidade"><button className={selected === "/comunidade" ? styles.selected : ""}>Comunidade</button></Link>
-            </div>
+            </nav>
             { user ? 
                 <div className={styles.menuPerfil}>
                     <Link to="/perfil" style={{paddingRight: 15}}>
@@ -39,6 +39,6 @@ export default function Navbar({selected} : {selected?: string}){
                     </Link>
                 </div>
             }
-        </div>
+        </header>
     );
 }

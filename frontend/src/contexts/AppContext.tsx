@@ -15,7 +15,7 @@ export function AppProvider({children} : {children: ReactNode}){
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
-    })
+    }, [])
 
     return(
         <AppContext.Provider value={{user, setUser}}>

@@ -7,6 +7,7 @@ import Fichas from './pages/Fichas'
 import Comunidade from './pages/Comunidade'
 import Registro from "./pages/Registro"
 import Login from "./pages/Login"
+import Perfil from "./pages/Perfil"
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path='/comunidade' element={<Comunidade/>}/>
         <Route path="/registro" element={<Registro/>}/>
         <Route path="/login" element={<Login/>}/>
+        <Route path="/perfil" element={<Perfil/>}/>
       </Routes>
     </Router>
   )
