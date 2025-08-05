@@ -7,6 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tempo de vida da sessão
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
@@ -36,6 +44,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();      // precisa para roteamento funcionar
+
+app.UseSession();      // deve vir depois do roteamento
 
 app.UseAuthorization();
 

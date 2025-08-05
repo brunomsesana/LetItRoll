@@ -11,7 +11,7 @@ using api;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250804010723_Inicial")]
+    [Migration("20250805160621_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />

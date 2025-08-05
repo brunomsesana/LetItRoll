@@ -36,13 +36,13 @@ namespace api.Controllers
             };
             var userDTO = new UserDTO
             {
-                Id = user.Id,
                 Name = user.Name,
                 LastName = user.LastName,
                 Email = user.Email
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            HttpContext.Session.SetString("UserId", user.Id.ToString());
             return Ok(new { message = "Usuário registrado com sucesso", usuario = userDTO });
         }
 
@@ -61,11 +61,11 @@ namespace api.Controllers
             }
             var userDTO = new UserDTO
             {
-                Id = user.Id,
                 Name = user.Name,
                 LastName = user.LastName,
                 Email = user.Email
             };
+            HttpContext.Session.SetString("UserId", user.Id.ToString());
             return Ok(new { message = "Login realizado com sucesso!", usuario = userDTO });
         }
     }

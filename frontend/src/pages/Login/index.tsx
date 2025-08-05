@@ -35,13 +35,13 @@ export default function Login(){
             if (keepLoggedIn) {
                 localStorage.setItem('user', JSON.stringify(data.usuario));
             }
+            navigate("/")
             } else {
             setResponseMessage(data.message || 'Erro no login');
             setIsError(true);
             }
         })
         )
-        .then(() => {navigate("/")})
         .catch((error) => {
         setResponseMessage('Erro de conexão com o servidor.');
         console.log(error);

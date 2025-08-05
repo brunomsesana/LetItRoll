@@ -4,11 +4,11 @@ import { User } from "../Interfaces";
 
 export const AppContext = createContext<{
     user: User | undefined,
-    setUser: (user : User) => void;
+    setUser: (user : User | undefined) => void;
 }>({user: undefined, setUser: () => {}});
 
 export function AppProvider({children} : {children: ReactNode}){
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User | undefined>();
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
