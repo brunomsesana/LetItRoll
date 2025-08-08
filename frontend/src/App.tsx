@@ -8,6 +8,7 @@ import Comunidade from './pages/Comunidade'
 import Registro from "./pages/Registro"
 import Login from "./pages/Login"
 import Perfil from "./pages/Perfil"
+import Canvas from "./components/Canvas"
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/registro" element={<Registro/>}/>
         <Route path="/login" element={<Login/>}/>
         <Route path="/perfil" element={<Perfil/>}/>
+        <Route path="/canvas" element={<Canvas/>}/>
       </Routes>
     </Router>
   )

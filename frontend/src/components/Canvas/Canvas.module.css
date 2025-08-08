@@ -1,0 +1,34 @@
+.campo{
+    padding: 10px;
+    border-radius: 20px;
+    border: 5px solid var(--Primaria);
+    width: fit-content;
+    background-color: var(--Secundaria);
+}
+.btnDice{
+    padding: 0 !important;
+    margin-left: 10px;
+    background-color: transparent;
+    border: none;
+}
+.btnDice:hover{
+    background-color: transparent;
+    border: none;
+    filter: invert()
+}
+/* Estilo para o "pegador" */
+.dragHandle {
+  padding: 0 8px;
+  color: var(--Primaria);
+  touch-action: none; /* Importante para evitar scroll em telas de toque */
+  user-select: none;  /* Evita que o ícone seja selecionado como texto */
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Um container para o conteúdo, se necessário */
+.content {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
