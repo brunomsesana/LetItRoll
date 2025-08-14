@@ -15,12 +15,16 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+var connectionString = $"Server={Environment.GetEnvironmentVariable("MYSQL_HOST")};" +
+                       $"Port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
+                       $"Database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
+                       $"User={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
+                       $"Password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
+                       $"SslMode=none";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+);
 
 builder.Services.AddCors(options =>
 {
@@ -41,11 +45,29 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Redireciona "/" para "/swagger"
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path == "/")
+        {
+            context.Response.Redirect("/swagger");
+            return;
+        }
+        await next();
+    });
 }
+
 
 app.UseHttpsRedirection();
 
 app.UseRouting();      // precisa para roteamento funcionar
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"[HTTP Request] {context.Request.Method} {context.Request.Path}");
+    await next();
+});
 
 app.UseSession();      // deve vir depois do roteamento
 

@@ -1,0 +1,38 @@
+.notification{
+    padding: 10px;
+    border-radius: 20px;
+    border: 5px solid var(--Primaria);
+    width: fit-content;
+    background-color: var(--Secundaria);
+    text-align: center;
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 10;
+    animation: fade-in 1s;
+    max-width: 20%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.fading{
+    animation: fade-out 1s;
+}
+
+@keyframes fade-in{
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out{
+    0%{
+        opacity: 1;
+    }
+    100%{
+        opacity: 0;
+        color: #242424;
+    }
+}

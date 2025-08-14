@@ -25,6 +25,7 @@ export default function Login(){
         'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: "include"
     })
         .then((res) =>
         res.json().then((data) => {

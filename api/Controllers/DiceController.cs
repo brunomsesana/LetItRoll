@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +13,8 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class DiceController : ControllerBase
     {
-        // Dicionário e logs são agora membros para serem acessados por todo o processo.
         private readonly Dictionary<string, string> _variables = new();
-        private readonly List<string> _rollLogs = new();
+        private readonly List<Rolagem> _rollLogs = new();
         private readonly Random _random = new();
 
         [HttpGet("roll")]
@@ -22,82 +23,63 @@ namespace api.Controllers
             _variables.Clear();
             _rollLogs.Clear();
 
-            // A chamada inicial para o novo motor recursivo.
             string resultadoFinal = ProcessarTexto(macro);
-            
+
             return Ok(new { resultado = resultadoFinal, rolagens = _rollLogs });
         }
 
-        // ------------------------------------------------------------------------------------
-        // NOVO MOTOR DE PROCESSAMENTO RECURSIVO (CORRIGIDO)
-        // ------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// A função principal que processa o texto, garantindo a ordem correta (esquerda para direita).
-        /// </summary>
         private string ProcessarTexto(string texto)
         {
-            // 1. Encontra o primeiro bloco de expressão da esquerda.
             int startIndex = texto.IndexOf('[');
-
-            // CASO BASE: Se não há mais blocos, apenas resolvemos as variáveis finais (ex: {vida}) e retornamos.
             if (startIndex == -1)
             {
                 return ResolverVariaveisEFormulas(texto);
             }
 
-            // 2. Encontra o colchete de fechamento correspondente, respeitando o aninhamento.
             int endIndex = EncontrarFechamento(texto, startIndex);
             if (endIndex == -1)
             {
                 return "ERRO: Colchete de abertura sem fechamento.";
             }
 
-            // 3. Isola o conteúdo do bloco.
             string conteudoBloco = texto.Substring(startIndex + 1, endIndex - startIndex - 1);
 
-            // 4. CHAMADA RECURSIVA: Processa o *conteúdo* do bloco primeiro.
-            // Isso resolve todo o aninhamento de dentro para fora.
-            string conteudoResolvido = ProcessarTexto(conteudoBloco);
+            string resultadoDoBloco;
 
-            // 5. Avalia o conteúdo já simplificado (ex: "#var:vida;10" ou "1d20").
-            string resultadoDoBloco = AvaliarExpressaoSimples(conteudoResolvido);
+            // Se for #if, não processa o bloco inteiro antes, apenas avalia a condicional
+            if (conteudoBloco.TrimStart().StartsWith("#if:"))
+            {
+                resultadoDoBloco = AvaliarCondicional(conteudoBloco);
+            }
+            else
+            {
+                // Para outros blocos normais, processa recursivamente
+                string conteudoResolvido = ProcessarTexto(conteudoBloco);
+                resultadoDoBloco = AvaliarExpressaoSimples(conteudoResolvido);
+            }
 
-            // 6. Constrói a nova string com o bloco resolvido.
             string textoModificado = texto.Remove(startIndex, endIndex - startIndex + 1)
                                         .Insert(startIndex, resultadoDoBloco);
 
-            // 7. REINICIA O PROCESSO: Chama a recursão na string *inteira modificada* desde o início.
+            // Continua processando o restante do texto
             return ProcessarTexto(textoModificado);
         }
 
-        /// <summary>
-        /// Função auxiliar para encontrar o ']' correspondente a um '[' inicial, contando os aninhados.
-        /// </summary>
         private int EncontrarFechamento(string texto, int startIndex)
         {
             int contador = 1;
             for (int i = startIndex + 1; i < texto.Length; i++)
             {
-                if (texto[i] == '[')
-                {
-                    contador++;
-                }
+                if (texto[i] == '[') contador++;
                 else if (texto[i] == ']')
                 {
                     contador--;
-                    if (contador == 0)
-                    {
-                        return i;
-                    }
+                    if (contador == 0) return i;
                 }
             }
-            return -1; // Não encontrou
+            return -1;
         }
 
-        /// <summary>
-        /// Dispatcher: Recebe um conteúdo de bloco JÁ RESOLVIDO e decide o que fazer.
-        /// </summary>
         private string AvaliarExpressaoSimples(string expressao)
         {
             expressao = expressao.Trim();
@@ -105,31 +87,27 @@ namespace api.Controllers
             if (expressao.StartsWith("#var:"))
             {
                 DefinirVariavel(expressao);
-                return ""; // Comandos #var não produzem texto.
+                return "";
             }
-            
+
             if (expressao.StartsWith("#if:"))
             {
                 return AvaliarCondicional(expressao);
             }
-            
-            if (expressao.Contains('d'))
+
+            if (Regex.IsMatch(expressao, @"\d*d\d+", RegexOptions.IgnoreCase))
             {
-                var resultadoDados = RolarDados(expressao);
-                if (resultadoDados != null)
+                var resultadoRolagem = RolarDados(expressao);
+                if (resultadoRolagem != null)
                 {
-                    _rollLogs.Add(resultadoDados.resultado);
-                    return resultadoDados.soma.ToString();
+                    _rollLogs.Add(resultadoRolagem);
+                    return resultadoRolagem.Soma.ToString();
                 }
                 return "0";
             }
-            
+
             return ResolverVariaveisEFormulas(expressao);
         }
-
-        // ------------------------------------------------------------------------------------
-        // FUNÇÕES AUXILIARES (praticamente inalteradas, mas agora funcionam na ordem correta)
-        // ------------------------------------------------------------------------------------
 
         private void DefinirVariavel(string comandoVar)
         {
@@ -138,7 +116,6 @@ namespace api.Controllers
             if (partes.Length == 2 && !string.IsNullOrWhiteSpace(partes[0]))
             {
                 string nome = partes[0].Trim();
-                // O valor já foi pré-processado pela recursão.
                 string valor = partes[1].Trim();
                 _variables[nome] = valor;
             }
@@ -150,9 +127,14 @@ namespace api.Controllers
             var partes = definicao.Split(new[] { ';' }, 3);
             if (partes.Length != 3) return "[ERRO DE SINTAXE IF]";
 
+            // Avalia a condição
             bool resultado = AvaliarCondicaoMatematica(partes[0]);
-            // Retorna o caminho (verdadeiro ou falso), que será processado pela próxima iteração.
-            return resultado ? partes[1] : partes[2];
+
+            // Escolhe apenas o ramo correto
+            string ramoSelecionado = resultado ? partes[1] : partes[2];
+
+            // Processa recursivamente apenas o ramo escolhido
+            return ProcessarTexto(ramoSelecionado);
         }
 
         private bool AvaliarCondicaoMatematica(string condicao)
@@ -164,14 +146,20 @@ namespace api.Controllers
             var partes = condicao.Split(new[] { op }, 2, StringSplitOptions.None);
             if (partes.Length < 2) return false;
 
-            string? valEsq = ResolverVariaveisEFormulas(partes[0]);
-            string? valDir = ResolverVariaveisEFormulas(partes[1]);
+            string? valEsq = ResolverVariaveisEFormulas(partes[0]).Trim();
+            string? valDir = ResolverVariaveisEFormulas(partes[1]).Trim();
 
             if (double.TryParse(valEsq, out double vEsq) && double.TryParse(valDir, out double vDir))
             {
-                return op switch {
-                    "<=" => vEsq <= vDir, ">=" => vEsq >= vDir, "==" => vEsq == vDir,
-                    "!=" => vEsq != vDir, "<" => vEsq < vDir, ">" => vEsq > vDir, _ => false
+                return op switch
+                {
+                    "<=" => vEsq <= vDir,
+                    ">=" => vEsq >= vDir,
+                    "==" => vEsq == vDir,
+                    "!=" => vEsq != vDir,
+                    "<" => vEsq < vDir,
+                    ">" => vEsq > vDir,
+                    _ => false
                 };
             }
             return false;
@@ -181,37 +169,95 @@ namespace api.Controllers
         {
             if (string.IsNullOrWhiteSpace(expressao)) return expressao;
             string processada = expressao.Trim();
-            processada = Regex.Replace(processada, @"\{(.+?)\}", m => 
+            processada = Regex.Replace(processada, @"\{(.+?)\}", m =>
                 _variables.TryGetValue(m.Groups[1].Value, out var v) ? v : m.Value);
             try { return new DataTable().Compute(processada, null)?.ToString() ?? ""; }
             catch { return processada; }
         }
 
-        public class ResultadoDados {
-            public int soma { get; set; }
-            public string resultado { get; set; }
-            public ResultadoDados(int s, string r) { soma = s; resultado = r; }
+        public class Rolagem
+        {
+            public string Macro { get; set; }
+            public List<string> Resultados { get; set; }
+            public int Soma { get; set; }
+
+            public Rolagem(string m, List<string> r, int s)
+            {
+                Macro = m;
+                Resultados = r;
+                Soma = s;
+            }
         }
 
-        private ResultadoDados? RolarDados(string macro)
+        private Rolagem? RolarDados(string macro)
         {
-            // Sua função de rolar dados permanece a mesma.
-            // Apenas garanta que ela use a instância `_random` da classe.
-            if (!macro.Contains('d')) return null;
-            string[] dSplitted = macro.Split('d');
-            if (dSplitted.Length != 2 || !int.TryParse(dSplitted[0], out int qtdDados)) return null;
-            if (int.TryParse(dSplitted[1], out int qtdFaces)) {
-                int soma = 0;
-                List<int> rolagens = new();
-                for (int i = 0; i < qtdDados; i++) {
-                    int rollResult = _random.Next(1, qtdFaces + 1);
-                    rolagens.Add(rollResult);
-                    soma += rollResult;
-                }
-                return new ResultadoDados(soma, $"{macro}: [{string.Join(", ", rolagens)}] = {soma}");
+            // Regex: [qtdDados]d[qtdFaces][operador][count]
+            var match = Regex.Match(macro, @"^(\d*)d(\d+)(kh|kl|dh|dl)?(\d+)?$", RegexOptions.IgnoreCase);
+            if (!match.Success) return null;
+
+            int qtdDados = string.IsNullOrEmpty(match.Groups[1].Value) ? 1 : int.Parse(match.Groups[1].Value);
+            int qtdFaces = int.Parse(match.Groups[2].Value);
+            string operador = match.Groups[3].Value.ToLower();
+            int count = string.IsNullOrEmpty(match.Groups[4].Value) ? 0 : int.Parse(match.Groups[4].Value);
+
+            if (!string.IsNullOrEmpty(operador))
+            {
+                if (count < 1)
+                    count = 1;
+                if (count > qtdDados)
+                    count = qtdDados;
             }
-            // ... (sua outra lógica de kh, kl, etc. aqui)
-            return null;
+
+            var todasAsRolagens = Enumerable.Range(0, qtdDados)
+                .Select(i => (valor: _random.Next(1, qtdFaces + 1), index: i))
+                .ToList();
+
+            HashSet<int> indicesMantidos;
+
+            if (string.IsNullOrEmpty(operador))
+            {
+                indicesMantidos = todasAsRolagens.Select(r => r.index).ToHashSet();
+            }
+            else
+            {
+                var rolagensOrdenadas = todasAsRolagens.OrderBy(r => r.valor).ToList();
+
+                switch (operador)
+                {
+                    case "kh":
+                        indicesMantidos = rolagensOrdenadas.Skip(qtdDados - count).Select(r => r.index).ToHashSet();
+                        break;
+                    case "kl":
+                        indicesMantidos = rolagensOrdenadas.Take(count).Select(r => r.index).ToHashSet();
+                        break;
+                    case "dh":
+                        indicesMantidos = rolagensOrdenadas.Take(qtdDados - count).Select(r => r.index).ToHashSet();
+                        break;
+                    case "dl":
+                        indicesMantidos = rolagensOrdenadas.Skip(count).Select(r => r.index).ToHashSet();
+                        break;
+                    default:
+                        return null;
+                }
+            }
+
+            var resultadosFormatados = new List<string>();
+            int soma = 0;
+
+            foreach (var rolagem in todasAsRolagens)
+            {
+                if (indicesMantidos.Contains(rolagem.index))
+                {
+                    resultadosFormatados.Add(rolagem.valor.ToString());
+                    soma += rolagem.valor;
+                }
+                else
+                {
+                    resultadosFormatados.Add($"~{rolagem.valor}~");
+                }
+            }
+
+            return new Rolagem(macro, resultadosFormatados, soma);
         }
     }
 }

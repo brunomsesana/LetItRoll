@@ -41,3 +41,4 @@ api/.env.*
 .fake
 .env
 .env.*
+.idx
