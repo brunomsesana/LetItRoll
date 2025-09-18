@@ -8,7 +8,7 @@ import Comunidade from './pages/Comunidade'
 import Registro from "./pages/Registro"
 import Login from "./pages/Login"
 import Perfil from "./pages/Perfil"
-import CriarFicha from "./pages/CriarFicha"
+import CriarSistema from "./pages/CriarSistema"
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
         <Route path="/registro" element={<Registro/>}/>
         <Route path="/login" element={<Login/>}/>
         <Route path="/perfil" element={<Perfil/>}/>
-        <Route path="/criar-ficha" element={<CriarFicha/>}/>
+        <Route path="/criar-sistema" element={<CriarSistema/>}/>
       </Routes>
     </Router>
   )

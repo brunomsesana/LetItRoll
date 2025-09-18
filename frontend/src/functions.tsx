@@ -14,10 +14,9 @@ export default function Roll(
     return valor.length === 0 ? "0" : valor;
   });
 
-  fetch(`http://localhost:5148/api/Dice/roll?macro=${encodeURIComponent(resultado)}`, {
+  fetch(`https://diceroller.up.railway.app/roll?macro=${encodeURIComponent(resultado)}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
   })
     .then(res => {
       if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
@@ -30,11 +29,11 @@ export default function Roll(
         // Se for um #if, mantém apenas o lado executado
         const ifMatch = roll.macro.match(/\[#if:(.*?);(.*?);(.*?)\]/);
         if (ifMatch) {
-          const [, condicao, ladoVerdadeiro, ladoFalso] = ifMatch;
-          // lado executado: se o roll.resultados bate com o ladoVerdadeiro ou ladoFalso
-          const ladoExecutado = roll.resultados.join(", ") === ladoVerdadeiro.replace(/\[|\]/g, "")
-            ? ladoVerdadeiro
-            : ladoFalso;
+          // const [, condicao, ladoVerdadeiro, ladoFalso] = ifMatch;
+          // // lado executado: se o roll.resultados bate com o ladoVerdadeiro ou ladoFalso
+          // const ladoExecutado = roll.resultados.join(", ") === ladoVerdadeiro.replace(/\[|\]/g, "")
+          //   ? ladoVerdadeiro
+          //   : ladoFalso;
           macroSubstituido = macroSubstituido.replace(
             new RegExp(roll.macro.replace(/([.*+?^${}()|[\]\\])/g, "\\$1")),
             `[${roll.resultados.join(", ")}]`

@@ -12,5 +12,18 @@ namespace api
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>().HasData([
+                new User {
+                    Id = 1,
+                    Name = "Admin",
+                    LastName = "Admin",
+                    Email = "admin@admin.admin",
+                    Password = BCrypt.Net.BCrypt.HashPassword("admin123")
+                }
+            ]);
+        }
     }
 }

@@ -1,30 +1,63 @@
 using api;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Adiciona serviços ao contêiner
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSwaggerGen(options => {
+    var jwtSecurityScheme = new OpenApiSecurityScheme{
+        BearerFormat = "JWT",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Description = "Enter your JWT Access Token",
+        Reference = new OpenApiReference {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tempo de vida da sessão
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+    options.AddSecurityDefinition("Bearer", jwtSecurityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement{
+        { jwtSecurityScheme, Array.Empty<string>() }
+    });
 });
-var connectionString = $"Server={Environment.GetEnvironmentVariable("MYSQL_HOST")};" +
-                       $"Port={Environment.GetEnvironmentVariable("MYSQL_PORT")};" +
-                       $"Database={Environment.GetEnvironmentVariable("MYSQL_DATABASE")};" +
-                       $"User={Environment.GetEnvironmentVariable("MYSQL_USER")};" +
-                       $"Password={Environment.GetEnvironmentVariable("MYSQL_PASSWORD")};" +
-                       $"SslMode=none";
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+Console.WriteLine($"Connection string: {connectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => {
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<JwtService>();
 
 builder.Services.AddCors(options =>
 {
@@ -32,8 +65,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173")
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowAnyHeader();
     });
 });
 
@@ -69,8 +101,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseSession();      // deve vir depois do roteamento
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

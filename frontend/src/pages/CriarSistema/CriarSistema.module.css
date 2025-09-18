@@ -16,6 +16,9 @@
 .label .label{
     background-color: var(--Fundo);
 }
+.label .label .label{
+    background-color: var(--Complementar2);
+}
 .divGeral{
     height: calc(100% - 100px);
 }

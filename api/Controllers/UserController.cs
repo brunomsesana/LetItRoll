@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.DTOs;
 using api.Models;
+using api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
@@ -14,10 +12,12 @@ namespace api.Controllers
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly JwtService _jwtService;
 
-        public UserController(AppDbContext context)
+        public UserController(AppDbContext context, JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         [HttpPost("register")]
@@ -46,27 +46,34 @@ namespace api.Controllers
             return Ok(new { message = "Usuário registrado com sucesso", usuario = userDTO });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest login)
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest login)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
+            var result = await _jwtService.Authenticate(login);
+            if (result is null)
+            {
+                return Unauthorized();
+            }
+            return Ok(result);
+            // var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
 
-            if (user == null)
-            {
-                return Unauthorized(new { message = "Usuário não encontrado" });
-            }
-            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
-            {
-                return Unauthorized(new { message = "Senha incorreta" });
-            }
-            var userDTO = new UserDTO
-            {
-                Name = user.Name,
-                LastName = user.LastName,
-                Email = user.Email
-            };
-            HttpContext.Session.SetString("UserId", user.Id.ToString());
-            return Ok(new { message = "Login realizado com sucesso!", usuario = userDTO });
+            // if (user == null)
+            // {
+            //     return Unauthorized(new { message = "Usuário não encontrado" });
+            // }
+            // if (!BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
+            // {
+            //     return Unauthorized(new { message = "Senha incorreta" });
+            // }
+            // var userDTO = new UserDTO
+            // {
+            //     Name = user.Name,
+            //     LastName = user.LastName,
+            //     Email = user.Email
+            // };
+            // HttpContext.Session.SetString("UserId", user.Id.ToString());
+            // return Ok(new { message = "Login realizado com sucesso!", usuario = userDTO });
         }
     }
 }

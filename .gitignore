@@ -25,6 +25,7 @@ api/*.db-shm
 api/*.db-wal
 api/.env
 api/.env.*
+api/appsettings.Development.json
 
 # ========== Configurações de IDE ==========
 .vscode/*

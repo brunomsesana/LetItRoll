@@ -1,27 +1,17 @@
 import { useEffect, useState } from "react";
 import Canvas from "../../components/Canvas";
-import styles from "./CriarFicha.module.css";
+import styles from "./CriarSistema.module.css";
 import { Navbar } from "../../components";
+import { CampoData } from "../../Interfaces";
 
-interface CampoData {
-  id: string;
-  x: number;
-  y: number;
-  title?: string;
-  inputType?: string;
-  placeholder?: string;
-  macro?: string;
-  value?: string;
-  selectOptions?: { value: string; label: string }[];
-}
-
-export default function CriarFicha() {
+export default function CriarSistema() {
   const [campos, setCampos] = useState<CampoData[]>([]);
   const [campoSelecionado, setCampoSelecionado] = useState<CampoData>();
   const [campoTemp, setCampoTemp] = useState<CampoData>();
   const [erro, setErro] = useState<string>("");
   const [copiedCampo, setCopiedCampo] = useState<CampoData | null>(null);
   const [canvasHeight, setCanvasHeight] = useState<number>(0);
+  const [corDoFundo, setCorDoFundo] = useState<string>("#663131");
 
   useEffect(() => {
     if (!campoSelecionado) return;
@@ -159,7 +149,17 @@ export default function CriarFicha() {
     if (campos.flatMap((x) => x.id).includes(newId.toString())) {
       handleAdd(newId + 1);
     } else {
-      setCampos([...campos, { id: newId.toString(), x: 0, y: 0 }]);
+      setCampos([
+        ...campos,
+        {
+          id: newId.toString(),
+          x: 0,
+          y: 0,
+          semFundo: false,
+          inputSemFundo: false,
+          layer: 0
+        },
+      ]);
       setErro("");
     }
   }
@@ -179,10 +179,11 @@ export default function CriarFicha() {
             campoSelecionado={campoSelecionado}
             setErro={setErro}
             onHeightChange={(h) => setCanvasHeight(h)}
+            style={{ backgroundColor: corDoFundo }}
           />
         </div>
         <div className={styles.editCampo} style={{ height: canvasHeight }}>
-          {campoSelecionado && campoTemp && (
+          {campoSelecionado && campoTemp ? (
             <>
               {erro && (
                 <p
@@ -240,6 +241,188 @@ export default function CriarFicha() {
                   }
                 />
               </label>
+              {campoTemp.inputType == "img" && <><label className={styles.label}>
+                Imagem:{" "}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setCampoTemp({
+                          ...campoTemp!,
+                          imagem: reader.result as string,
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
+              <label className={styles.label}>
+                Largura da imagem (em pixels):{" "}
+                <input
+                  type="text"
+                  value={campoTemp?.tamanhoImagem ?? ""}
+                  onChange={(e) =>
+                    campoTemp
+                      ? setCampoTemp({ ...campoTemp, tamanhoImagem: parseInt(e.target.value) })
+                      : null
+                  }
+                />
+              </label></>}
+              <div
+                className={styles.label}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <p>Cores do campo: </p>
+                <label className={styles.label}>
+                  Sem fundo:{" "}
+                  <input
+                    type="checkbox"
+                    checked={campoTemp?.semFundo ?? false}
+                    onChange={(e) =>
+                      setCampoTemp({ ...campoTemp, semFundo: e.target.checked })
+                    }
+                  />
+                </label>
+                {!campoTemp.semFundo && (
+                  <>
+                    <label
+                      className={styles.label}
+                      style={{ width: "80%", textAlign: "center" }}
+                    >
+                      Cor do fundo (e borda quando selecionado):{" "}
+                      <input
+                        type="color"
+                        value={campoTemp?.corFundo ?? "#c97d7d"}
+                        onChange={(e) =>
+                          setCampoTemp({
+                            ...campoTemp,
+                            corFundo: e.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label
+                      className={styles.label}
+                      style={{ width: "80%", textAlign: "center" }}
+                    >
+                      Cor da borda (e fundo quando selecionado):{" "}
+                      <input
+                        type="color"
+                        value={campoTemp?.corBorda ?? "#590202"}
+                        onChange={(e) =>
+                          setCampoTemp({
+                            ...campoTemp,
+                            corBorda: e.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  </>
+                )}
+                <label
+                  className={styles.label}
+                  style={{ width: "80%", textAlign: "center" }}
+                >
+                  Cor do texto:{" "}
+                  <input
+                    type="color"
+                    value={campoTemp?.corTexto ?? "#000000"}
+                    onChange={(e) =>
+                      setCampoTemp({ ...campoTemp, corTexto: e.target.value })
+                    }
+                  />
+                </label>
+                <label
+                  className={styles.label}
+                  style={{ width: "80%", textAlign: "center" }}
+                >
+                  Cor do texto quando selecionado:{" "}
+                  <input
+                    type="color"
+                    value={campoTemp?.corTextoSelected ?? "#ffffff"}
+                    onChange={(e) =>
+                      setCampoTemp({
+                        ...campoTemp,
+                        corTextoSelected: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <div
+                  className={styles.label}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <label className={styles.label}>
+                    {campoTemp.inputType == "img" ? "Imagem" : "Input"} sem
+                    fundo:{" "}
+                    <input
+                      type="checkbox"
+                      checked={campoTemp?.inputSemFundo ?? false}
+                      onChange={(e) =>
+                        setCampoTemp({
+                          ...campoTemp,
+                          inputSemFundo: e.target.checked,
+                        })
+                      }
+                    />
+                  </label>
+                  {!campoTemp.inputSemFundo && (
+                    <>
+                      <label
+                        className={styles.label}
+                        style={{ width: "80%", textAlign: "center" }}
+                      >
+                        Cor de fundo{" "}
+                        {campoTemp.inputType == "img"
+                          ? "da imagem"
+                          : "do input"}
+                        :{" "}
+                        <input
+                          type="color"
+                          value={campoTemp?.corFundoInput ?? "#ffffff"}
+                          onChange={(e) =>
+                            setCampoTemp({
+                              ...campoTemp,
+                              corFundoInput: e.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                      {!(campoTemp.inputType == "img") && (
+                        <label
+                          className={styles.label}
+                          style={{ width: "80%", textAlign: "center" }}
+                        >
+                          Cor do texto do input:{" "}
+                          <input
+                            type="color"
+                            value={campoTemp?.corTextoInput ?? "#000000"}
+                            onChange={(e) =>
+                              setCampoTemp({
+                                ...campoTemp,
+                                corTextoInput: e.target.value,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
               <label className={styles.label}>
                 Tipo:
                 <select
@@ -252,6 +435,7 @@ export default function CriarFicha() {
                   <option value="number">Entrada de número</option>
                   <option value="select">Seleção</option>
                   <option value="header">Texto</option>
+                  <option value="img">Imagem</option>
                 </select>
               </label>
               {campoTemp?.inputType === "select" && (
@@ -359,10 +543,23 @@ export default function CriarFicha() {
                 Duplicar campo
               </button>
             </>
+          ) : (
+            <>
+              <label>
+                Cor do fundo:{" "}
+                <input
+                  type="color"
+                  value={corDoFundo}
+                  onChange={(e) => setCorDoFundo(e.target.value)}
+                />
+              </label>
+            </>
           )}
-          <button style={{ margin: 5 }} onClick={() => handleAdd()}>
-            Criar novo campo
-          </button>
+          <div className={styles.bottomBar}>
+            <button style={{ margin: 5 }} onClick={() => handleAdd()}>
+              Criar novo campo
+            </button>
+          </div>
         </div>
       </div>
     </>

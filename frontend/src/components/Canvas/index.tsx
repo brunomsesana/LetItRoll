@@ -4,18 +4,8 @@ import styles from "./Canvas.module.css";
 import Roll from "../../functions";
 import Notification from "../Notification";
 import { AppContext } from "../../contexts/AppContext";
-
-interface CampoData {
-  id: string;
-  x: number;
-  y: number;
-  title?: string;
-  inputType?: string;
-  placeholder?: string;
-  macro?: string;
-  value?: string;
-  selectOptions?: { value: string; label: string }[];
-}
+import D20 from "../../assets/d20";
+import { CampoData } from "../../Interfaces";
 
 export default function Canvas({
   campos,
@@ -23,7 +13,8 @@ export default function Canvas({
   setCampoSelecionado,
   campoSelecionado,
   setErro,
-  onHeightChange
+  onHeightChange,
+  style,
 }: {
   campos: CampoData[];
   setCampos: (campos: CampoData[]) => void;
@@ -31,10 +22,11 @@ export default function Canvas({
   campoSelecionado: CampoData | undefined;
   setErro: (erro: string) => void;
   onHeightChange?: (height: number) => void;
+  style: React.CSSProperties;
 }) {
   const campoRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const [canvasHeight, setCanvasHeight] = useState<number | string>('100%');
+  const [canvasHeight, setCanvasHeight] = useState<number | string>("100%");
   const initialPixelHeightRef = useRef<number | null>(null);
 
   const { setNotificationText, setNotificationSubText, setNotificationTitle } =
@@ -55,7 +47,11 @@ export default function Canvas({
   function handleDragMove(event: any) {
     const { delta } = event;
 
-    if (campoSelecionado && canvasRef.current && campoRefs.current[campoSelecionado.id]) {
+    if (
+      campoSelecionado &&
+      canvasRef.current &&
+      campoRefs.current[campoSelecionado.id]
+    ) {
       const draggedCampoElement = campoRefs.current[campoSelecionado.id];
       if (!draggedCampoElement) return;
 
@@ -69,47 +65,50 @@ export default function Canvas({
       }
     }
   }
-  
+
   function handleDragEnd(event: any) {
     const { active, delta } = event;
-    const draggedCampo = campos.find(c => c.id === active.id);
+    const draggedCampo = campos.find((c) => c.id === active.id);
     if (!draggedCampo || !canvasRef.current) return;
-  
+
     const draggedElement = campoRefs.current[draggedCampo.id];
     if (!draggedElement) return;
-  
+
     const canvasWidth = canvasRef.current.offsetWidth;
     const canvasHeightCurrent = canvasRef.current.offsetHeight;
     const campoWidth = draggedElement.offsetWidth;
     const campoHeight = draggedElement.offsetHeight;
-  
+
     // Calcula nova posição limitada dentro do canvas
     let newX = draggedCampo.x + delta.x;
     let newY = draggedCampo.y + delta.y;
-  
+
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
     if (newX + campoWidth > canvasWidth) newX = canvasWidth - campoWidth;
-    if (newY + campoHeight > canvasHeightCurrent) newY = canvasHeightCurrent - campoHeight;
-  
-    const nextCampos = campos.map(c =>
+    if (newY + campoHeight > canvasHeightCurrent)
+      newY = canvasHeightCurrent - campoHeight;
+
+    const nextCampos = campos.map((c) =>
       c.id === active.id ? { ...c, x: newX, y: newY } : c
     );
-  
+
     // Atualiza altura do canvas se necessário
-    const contentMaxY = Math.max(...nextCampos.map(c => {
-      const el = campoRefs.current[c.id];
-      return el ? c.y + el.offsetHeight : 0;
-    }));
+    const contentMaxY = Math.max(
+      ...nextCampos.map((c) => {
+        const el = campoRefs.current[c.id];
+        return el ? c.y + el.offsetHeight : 0;
+      })
+    );
     const requiredContentHeight = contentMaxY + 50;
     const initialHeight = initialPixelHeightRef.current;
-  
+
     if (initialHeight && requiredContentHeight <= initialHeight) {
-      setCanvasHeight('100%');
+      setCanvasHeight("100%");
     } else {
       setCanvasHeight(requiredContentHeight);
     }
-  
+
     setCampos(nextCampos);
   }
 
@@ -147,8 +146,8 @@ export default function Canvas({
   return (
     <>
       <Notification />
-      <DndContext 
-        onDragEnd={handleDragEnd} 
+      <DndContext
+        onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
       >
@@ -156,9 +155,13 @@ export default function Canvas({
           ref={canvasRef}
           className={styles.canvasArea}
           style={{
-            height: typeof canvasHeight === 'string'
-              ? canvasHeight
-              : `${canvasHeight}px`
+            ...{
+              height:
+                typeof canvasHeight === "string"
+                  ? canvasHeight
+                  : `${canvasHeight}px`,
+            },
+            ...style,
           }}
         >
           {campos.map((campo) => (
@@ -211,6 +214,17 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
     onSelectCampo,
     idCampo,
     selectOptions,
+    corFundo,
+    corBorda,
+    corTexto,
+    corTextoSelected,
+    semFundo,
+    corFundoInput,
+    corTextoInput,
+    inputSemFundo,
+    imagem,
+    tamanhoImagem,
+    layer
   },
   ref
 ) {
@@ -250,13 +264,26 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
         boxShadow: isDragging ? "0 0 10px rgba(0,0,0,0.3)" : "none",
         display: "flex",
         alignItems: "center",
+        zIndex: layer,
         ...(idCampo == id
           ? {
-            border: "5px solid var(--Secundaria)",
-            backgroundColor: "var(--Primaria)",
-            color: "white",
-          }
-          : {}),
+              border:
+                "5px solid " +
+                (semFundo ? "transparent" : corFundo ?? "var(--Secundaria)"),
+              backgroundColor: semFundo
+                ? "transparent"
+                : corBorda ?? "var(--Primaria)",
+              color: corTextoSelected ?? "white",
+            }
+          : {
+              border:
+                "5px solid " +
+                (semFundo ? "transparent" : corBorda ?? "var(--Primaria)"),
+              backgroundColor: semFundo
+                ? "transparent"
+                : corFundo ?? "var(--Secundaria)",
+              color: corTexto ?? "black",
+            }),
       }}
       onClick={() => onSelectCampo(id)}
     >
@@ -266,7 +293,13 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
         className={styles.dragHandle}
         style={{
           cursor: isDragging ? "grabbing" : "grab",
-          ...(idCampo == id ? { color: "var(--Secundaria)" } : {}),
+          ...(idCampo == id
+            ? { color: semFundo ? corTextoSelected : corFundo ?? "var(--Secundaria)" }
+            : {
+                color: semFundo
+                  ? corTexto
+                  : corBorda ?? "var(--Primaria)",
+              }),
         }}
       >
         ⠿
@@ -278,10 +311,11 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
       >
         {title && (
           <label style={{ marginRight: 10 }} htmlFor={id}>
-            {title}{inputType != "header" && ":"}
+            {title}
+            {inputType != "header" && ":"}
           </label>
         )}
-        {inputType === "number" &&
+        {inputType === "number" && (
           <div>
             <input
               type="number"
@@ -289,10 +323,20 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
               id={id}
               value={value ?? ""}
               onChange={(e) => onChange(id, e.target.value)}
-              style={{ width: 50 }}
+              style={{
+                width: 50,
+                backgroundColor: inputSemFundo
+                  ? "transparent"
+                  : corFundoInput ?? "#ffffff",
+                color: (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black") : corTextoInput ?? "black"),
+                border: "none",
+                borderBottom: "1px solid " + (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black") : corTextoInput ?? "black"),
+                textAlign: "center",
+                borderRadius: "5px 5px 0 0"
+              }}
             />
           </div>
-        }
+        )}
 
         {(inputType === "text" || inputType === undefined) && (
           <div style={{ display: "inline-block", maxWidth: "100%" }}>
@@ -324,6 +368,14 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
                 lineHeight: "1.2em",
                 boxSizing: "border-box",
                 font: "inherit",
+                backgroundColor: inputSemFundo
+                  ? "transparent"
+                  : corFundoInput ?? "#ffffff",
+                color: (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black") : corTextoInput ?? "black"),
+                border: "none",
+                borderBottom: "1px solid " + (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black") : corTextoInput ?? "black"),
+                textAlign: "center",
+                borderRadius: "5px 5px 0 0"
               }}
               rows={1}
               onInput={(e) => {
@@ -336,7 +388,20 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
         )}
 
         {inputType === "select" && (
-          <select value={value} onChange={(e) => onChange(id, e.target.value)}>
+          <select
+            value={value}
+            onChange={(e) => onChange(id, e.target.value)}
+            style={{
+              backgroundColor: inputSemFundo
+                ? "transparent"
+                : corFundoInput ?? "#ffffff",
+              color: (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black" ) : corTextoInput ?? "black"),
+              border: "none",
+              borderBottom: "1px solid " + (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black") : corTextoInput ?? "black"),
+              textAlign: "center",
+              borderRadius: "5px 5px 0 0"
+            }}
+          >
             {selectOptions?.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -344,15 +409,41 @@ const Campo = forwardRef<HTMLDivElement, CampoProps>(function Campo(
             ))}
           </select>
         )}
+        {inputType === "img" && (
+          <img
+            src={imagem}
+            style={{
+              backgroundColor: inputSemFundo
+                ? "transparent"
+                : corFundoInput ?? "#ffffff",
+              color: (inputSemFundo ? (idCampo == id ? corTextoSelected ?? "white" : corTexto ?? "black" ) : corTextoInput ?? "black"),
+              borderRadius: "5px 5px 0 0",
+              width: tamanhoImagem ?? "auto"
+            }}
+          />
+        )}
 
         {macro && (
           <button onClick={() => Roll(macro, title)} className={styles.btnDice}>
-            <img
-              src="/d20.png"
+            {/* <img
+              src="/d20.svg"
               width={30}
-              style={{ margin: 0 }}
+              style={{ margin: 0, fill: "white" }}
               alt="Roll dice"
-            />
+            /> */}
+            <D20
+              width={30}
+              style={{
+                margin: 0,
+                fill: (semFundo
+                  ? (idCampo == id
+                    ? corTextoSelected ?? "white"
+                    : corTexto ?? "black")
+                  : (idCampo == id
+                  ? corFundo ?? "var(--Secundaria)"
+                  : corBorda ?? "var(--Primaria)")),
+              }}
+            ></D20>
           </button>
         )}
       </div>
