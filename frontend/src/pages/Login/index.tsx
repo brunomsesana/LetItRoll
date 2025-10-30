@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import styles from './Login.module.css';
 import seta from '../../assets/seta.svg';
 import { useContext, useState } from 'react';
@@ -9,14 +9,15 @@ import { useNavigate, Navigate } from 'react-router-dom';
 export default function Login(){
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-    email: '',
+    emailOrUsername: '',
     password: ''
   });
 
   const [responseMessage, setResponseMessage] = useState<string>('');
   const [isError, setIsError] = useState<boolean>(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
-  const {user, setUser} = useContext(AppContext);
+  const { user, setUser } = useContext(AppContext);
+  const location = useLocation();
 
   function handleSubmit() {
     fetch('http://localhost:5148/api/User/login', {
@@ -32,11 +33,15 @@ export default function Login(){
             if (res.ok) {
             setResponseMessage('Login realizado com sucesso!');
             setIsError(false);
-            setUser(data.usuario);
-            if (keepLoggedIn) {
-                localStorage.setItem('user', JSON.stringify(data.usuario));
+            console.log(data.message);
+            setUser(data.user);
+            // if (keepLoggedIn) {
+                
+            // }
+            if (location.pathname != "/"){
+                console.log(location.pathname);
+                navigate("/")
             }
-            navigate("/")
             } else {
             setResponseMessage(data.message || 'Erro no login');
             setIsError(true);
@@ -59,8 +64,8 @@ export default function Login(){
                     <h3>Login</h3>
                 </div>
                 <div className={styles.formDiv}>
-                    <label htmlFor="email">Email:</label>
-                    <input type="email" id='email' name="email" className={styles.input} value={formData.email} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})}/>
+                    <label htmlFor="email">Email ou Nome de Usuário:</label>
+                    <input type="text" id='emailOrUsername' name="emailOrUsername" className={styles.input} value={formData.emailOrUsername} onChange={(e) => setFormData({...formData, [e.target.name]: e.target.value})}/>
                 </div>
                 <div className={styles.formDiv}>
                     <label htmlFor="password">Senha:</label>

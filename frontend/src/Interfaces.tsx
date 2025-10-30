@@ -1,7 +1,10 @@
 export interface User{
-    name: string,
-    lastName: string,
-    email: string,
+    id: string;
+    name: string;
+    lastName: string;
+    username: string;
+    email: string;   
+    profilePic?: string;
 }
 export interface CampoData {
     id: string;

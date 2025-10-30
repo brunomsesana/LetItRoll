@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using api.DTOs;
 
-namespace api.Models
+namespace api.DTOs
 {
     public class Campo
     {

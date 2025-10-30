@@ -11,8 +11,8 @@ using api;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250917225718_UserSeeding")]
-    partial class UserSeeding
+    [Migration("20250924165711_CreateSistemasTable")]
+    partial class CreateSistemasTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,13 +24,35 @@ namespace api.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("api.Models.Sistema", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("CamposJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Criador")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sistemas");
+                });
+
             modelBuilder.Entity("api.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<bool>("Admin")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -48,6 +70,10 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
@@ -55,11 +81,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
+                            Id = "f67c78ce-7891-4c9c-b658-9cd003229aaa",
+                            Admin = true,
                             Email = "admin@admin.admin",
                             LastName = "Admin",
                             Name = "Admin",
-                            Password = "$2a$11$JzelIMappkt5VqlMZlTPG./SHnTvJQPY0PfICr9gQqm72hqKVWuke"
+                            Password = "$2a$11$cupuLXxBBCkgbH3NQwWQAOEjrQGUMSh9DyWZGhPFCBPNJ/dmUQ4eK",
+                            Username = "admin"
                         });
                 });
 #pragma warning restore 612, 618

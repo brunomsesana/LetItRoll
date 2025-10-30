@@ -11,8 +11,8 @@ using api;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250805160621_Inicial")]
-    partial class Inicial
+    [Migration("20250919212042_Initialcreate")]
+    partial class Initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,11 +26,11 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<bool>("Admin")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -48,9 +48,25 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "c97c1283-1cbe-42fb-b03a-e7207395d930",
+                            Admin = true,
+                            Email = "admin@admin.admin",
+                            LastName = "Admin",
+                            Name = "Admin",
+                            Password = "$2a$11$QOIMwVfDhFHZffVr5Ayfqeh3gbODnenRSSgA3fIS15GKb9APVLUZi",
+                            Username = "admin"
+                        });
                 });
 #pragma warning restore 612, 618
         }

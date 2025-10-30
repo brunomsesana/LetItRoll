@@ -1,10 +1,11 @@
 // Em algum controller, por exemplo TestController.cs
+using api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Models;
 
-namespace api.Controllers {
-
+namespace api.Controllers
+{
     [ApiController]
     [Route("[controller]")]
     public class TestController : ControllerBase
@@ -16,6 +17,7 @@ namespace api.Controllers {
             _context = db;
         }
 
+        [Authorize]
         [HttpGet("dbconnection")]
         public async Task<IActionResult> TestDbConnection()
         {
